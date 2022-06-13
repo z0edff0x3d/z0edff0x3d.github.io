@@ -16,15 +16,15 @@
 <meta property="og:site_name" content="z0@ServSec">
 <meta property="og:description" content="上一篇文章写完之后发现密码中有空格也会影响到脚本执行。  使用正则表达式解决了dcAccountPassword中存在空格和反引号的问题，目前没有发现还有其他符号会干扰结果执行 1dcAccountPassword: K)Sc7&gt;~&gt;?d\&#96;9T0vRs# p   Fix： 1234567891011result &#x3D; RunCommand(&quot;&#x2F;opt&#x2F;likewise&#x2F;bin">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220611231703911.png">
-<meta property="og:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220611231421946.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220613104850685.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220613104828072.png">
 <meta property="article:published_time" content="2022-06-11T09:41:01.000Z">
-<meta property="article:modified_time" content="2022-06-11T15:17:40.231Z">
+<meta property="article:modified_time" content="2022-06-13T02:48:51.870Z">
 <meta property="article:author" content="z0edff0x3d">
 <meta property="article:tag" content="Python">
 <meta property="article:tag" content="vCenter">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220611231703911.png">
+<meta name="twitter:image" content="https://z0edff0x3d.github.io/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220613104850685.png">
   
     <link rel="alternative" href="/atom.xml" title="z0@ServSec" type="application/atom+xml">
   
@@ -199,11 +199,11 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>上一篇文章写完之后发现密码中有空格也会影响到脚本执行。</p>
-<p><img src="/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220611231703911.png" alt="image-20220611231703911"></p>
+<p><img src="/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220613104850685.png" alt="image-20220613104850685"></p>
 <p>使用正则表达式解决了dcAccountPassword中存在空格和反引号的问题，目前没有发现还有其他符号会干扰结果执行</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dcAccountPassword: K)Sc7&gt;~&gt;?d\`9T0vRs<span class="comment"># p</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220611231421946.png" alt="image-20220611231421946"></p>
+<p><img src="/2022/06/11/vCenterLDAP-Manage-Fix2/image-20220613104828072.png" alt="image-20220613104828072"></p>
 <p>Fix：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">result = RunCommand(<span class="string">&quot;/opt/likewise/bin/lwregshell list_values &#x27;[HKEY_THIS_MACHINE\\services\\vmdir]&#x27;&quot;</span>)</span><br><span class="line"></span><br><span class="line">pattern = re.<span class="built_in">compile</span>(<span class="string">r&#x27;&quot;dcAccount&quot;.*?&quot;(.*)&quot;&#x27;</span>)</span><br><span class="line">dcAccount = pattern.findall(result)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">pattern = re.<span class="built_in">compile</span>(<span class="string">r&#x27;&quot;dcAccountDN&quot;.*?&quot;(.*)&quot;&#x27;</span>)</span><br><span class="line">dcAccountDN = pattern.findall(result)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">pattern = re.<span class="built_in">compile</span>(<span class="string">r&#x27;&quot;dcAccountPassword&quot;.*?&quot;(.*)&quot;&#x27;</span>)</span><br><span class="line">dcAccountPassword = pattern.findall(result)[<span class="number">0</span>].replace(<span class="string">&quot;$&quot;</span>, <span class="string">&#x27;\\$&#x27;</span>).replace(<span class="string">&quot;`&quot;</span>, <span class="string">&#x27;\\`&#x27;</span>)</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
 
